@@ -399,7 +399,7 @@ const ChatPage: React.FC = () => {
         setMessages(prev => [...prev, { sender: 'ai', text: "I couldn't come up with anything for that. Could you try being more specific?" }]);
       }
     } catch (error) {
-      console.error("Gemini API error:", error);
+      console.error("Gemini API error:", error , process.env.API_KEY);
       setMessages(prev => [...prev, { sender: 'ai', text: "I'm having trouble searching for products right now. Please try again in a moment." }]);
     } finally {
       setIsLoading(false);
