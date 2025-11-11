@@ -338,7 +338,7 @@ const ChatPage: React.FC = () => {
     setLoadingMessage('Coming up with ideas...');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_API_KEY });
       
       const textGenSchema = {
         type: Type.OBJECT,
@@ -399,7 +399,7 @@ const ChatPage: React.FC = () => {
         setMessages(prev => [...prev, { sender: 'ai', text: "I couldn't come up with anything for that. Could you try being more specific?" }]);
       }
     } catch (error) {
-      console.error("Gemini API error:", error , process.env.API_KEY);
+      console.error("Gemini API error:", error);
       setMessages(prev => [...prev, { sender: 'ai', text: "I'm having trouble searching for products right now. Please try again in a moment." }]);
     } finally {
       setIsLoading(false);
