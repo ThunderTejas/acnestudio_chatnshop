@@ -338,7 +338,7 @@ const ChatPage: React.FC = () => {
     setLoadingMessage('Coming up with ideas...');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: "AIzaSyBcQxmCBAuJRhnAVT4mGg6u6r-0TV5Scdo" }); // to be changed
+      const ai = new GoogleGenAI({ apiKey: "AIzaSyAZzURoiDPINlDpVSQUdCeHJUaXu27MTeY" }); // to be changed
       
       const textGenSchema = {
         type: Type.OBJECT,
