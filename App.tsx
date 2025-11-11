@@ -84,11 +84,8 @@ interface CartContextType {
 }
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-interface CartProviderProps {
-  children: ReactNode;
-}
-// FIX: Changed props type from custom interface to { children: ReactNode } to resolve TS error.
-const CartProvider = ({ children }: CartProviderProps) => {
+// FIX: Replaced the CartProviderProps interface with an inline type for the 'children' prop to resolve a TypeScript error.
+const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const addToCart = (item: Product) => {
     if (!cartItems.find(cartItem => cartItem.id === item.id)) {
@@ -315,10 +312,19 @@ const HomePage: React.FC = () => {
     );
 };
 
+const LoadingDots = () => (
+    <div className="flex items-center space-x-1">
+        <span className="sr-only">Loading...</span>
+        <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+        <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+        <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce"></div>
+    </div>
+);
+
+
 const ChatPage: React.FC = () => {
   const { addToCart } = useCart();
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('Thinking...');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<{ sender: 'user' | 'ai'; text?: string; products?: Product[] }[]>([
     { sender: 'ai', text: "Hello! How can I help you find the perfect item today? Ask for anything, like 'Show me a wool scarf' or 'I need some vintage-looking jeans'." }
@@ -327,7 +333,7 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -335,10 +341,9 @@ const ChatPage: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    setLoadingMessage('Coming up with ideas...');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: "AIzaSyAZzURoiDPINlDpVSQUdCeHJUaXu27MTeY" }); // to be changed
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const textGenSchema = {
         type: Type.OBJECT,
@@ -373,8 +378,7 @@ const ChatPage: React.FC = () => {
       const generatedProducts = resultJson.products;
 
       if (generatedProducts && generatedProducts.length > 0) {
-        setLoadingMessage('Creating product images...');
-
+        
         const productsWithImages = await Promise.all(
             generatedProducts.map(async (product: any) => {
                 const imageResponse = await ai.models.generateContent({
@@ -399,7 +403,7 @@ const ChatPage: React.FC = () => {
         setMessages(prev => [...prev, { sender: 'ai', text: "I couldn't come up with anything for that. Could you try being more specific?" }]);
       }
     } catch (error) {
-      console.error("Gemini API error:", error);
+      console.error("Gemini API error:", error , process.env.API_KEY);
       setMessages(prev => [...prev, { sender: 'ai', text: "I'm having trouble searching for products right now. Please try again in a moment." }]);
     } finally {
       setIsLoading(false);
@@ -432,7 +436,7 @@ const ChatPage: React.FC = () => {
             </div>
           </div>
         ))}
-        {isLoading && <div className="flex justify-start"><div className="max-w-lg p-3 rounded-lg bg-gray-200 text-black">{loadingMessage}</div></div>}
+        {isLoading && <div className="flex justify-start"><div className="max-w-lg p-3 rounded-lg bg-gray-200 text-black"><LoadingDots/></div></div>}
         <div ref={chatEndRef} />
       </div>
       <div className="border-t p-4 bg-white">
