@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, createContext, useContext, ReactNode } from 'react';
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 
@@ -69,6 +70,20 @@ const BagIcon = () => (
     </svg>
 );
 
+const ContinueShoppingIcon = () => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        className="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        stroke="currentColor"
+        strokeWidth={1.5}
+        aria-hidden="true"
+    >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+    </svg>
+);
+
 // --- PRODUCT & CART MANAGEMENT ---
 interface Product {
   id: string;
@@ -84,8 +99,13 @@ interface CartContextType {
 }
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// FIX: Replaced the CartProviderProps interface with an inline type for the 'children' prop to resolve a TypeScript error.
-const CartProvider = ({ children }: { children: ReactNode }) => {
+interface CartProviderProps {
+  children: ReactNode;
+}
+
+// FIX: Replaced an inline type with the 'CartProviderProps' interface for the 'children' prop. This improves readability and resolves a potential TypeScript error.
+// FIX: Explicitly type CartProvider as a React.FC to resolve a potential TypeScript type inference error.
+const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const addToCart = (item: Product) => {
     if (!cartItems.find(cartItem => cartItem.id === item.id)) {
@@ -456,7 +476,7 @@ const CartPage: React.FC<{ onNavigate: (page: 'home' | 'chat' | 'cart' | 'checko
         <div className="container mx-auto p-4 sm:p-8 font-sans">
             <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
             {cartItems.length === 0 ? (
-                <p>Your cart is empty.</p>
+                <p className="text-black">Your cart is empty.</p>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="md:col-span-2 space-y-4">
@@ -464,24 +484,24 @@ const CartPage: React.FC<{ onNavigate: (page: 'home' | 'chat' | 'cart' | 'checko
                             <div key={item.id} className="flex items-center bg-white p-4 rounded-lg shadow-sm">
                                 <img src={item.imageUrl} alt={item.name} className="w-24 h-24 object-cover rounded-md mr-4"/>
                                 <div className="flex-1">
-                                    <h2 className="font-bold text-lg">{item.name}</h2>
-                                    <p className="text-sm text-gray-600">{item.description}</p>
+                                    <h2 className="font-bold text-lg text-black">{item.name}</h2>
+                                    <p className="text-sm text-black">{item.description}</p>
                                 </div>
-                                <p className="font-semibold text-lg">{item.price}</p>
+                                <p className="font-semibold text-lg text-black">{item.price}</p>
                             </div>
                         ))}
                     </div>
                     <div className="bg-gray-100 p-6 rounded-lg h-fit">
-                        <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-                        <div className="flex justify-between mb-2">
+                        <h2 className="text-xl font-bold mb-4 text-black">Order Summary</h2>
+                        <div className="flex justify-between mb-2 text-black">
                             <span>Subtotal</span>
                             <span>${subtotal.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between mb-4">
+                        <div className="flex justify-between mb-4 text-black">
                             <span>Shipping</span>
                             <span>FREE</span>
                         </div>
-                        <div className="border-t pt-4 flex justify-between font-bold text-lg">
+                        <div className="border-t pt-4 flex justify-between font-bold text-lg text-black">
                             <span>Total</span>
                             <span>${subtotal.toFixed(2)}</span>
                         </div>
@@ -495,12 +515,20 @@ const CartPage: React.FC<{ onNavigate: (page: 'home' | 'chat' | 'cart' | 'checko
     );
 };
 
-const CheckoutPage: React.FC = () => (
-    <div className="container mx-auto p-4 sm:p-8 text-center font-sans">
+const CheckoutPage: React.FC<{ onNavigate: (page: 'home' | 'chat' | 'cart' | 'checkout') => void; }> = ({ onNavigate }) => (
+    <div className="container mx-auto p-4 sm:p-8 text-center font-sans flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <h1 className="text-4xl font-bold mb-4">Thank You!</h1>
-        <p className="text-lg">Your order has been placed. Thank you for shopping with us.</p>
+        <p className="text-lg mb-8 max-w-md">Your order has been placed. Thank you for shopping with us.</p>
+        <button
+            onClick={() => onNavigate('home')}
+            className="group inline-flex items-center justify-center bg-black text-white px-8 py-3 rounded-md hover:bg-gray-800 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+        >
+            Keep Shopping
+            <ContinueShoppingIcon />
+        </button>
     </div>
 );
+
 
 // --- APP ROUTER ---
 const App = () => {
@@ -510,7 +538,7 @@ const App = () => {
     switch (currentPage) {
       case 'chat': return <ChatPage />;
       case 'cart': return <CartPage onNavigate={setCurrentPage} />;
-      case 'checkout': return <CheckoutPage />;
+      case 'checkout': return <CheckoutPage onNavigate={setCurrentPage} />;
       case 'home':
       default: return <HomePage />;
     }
